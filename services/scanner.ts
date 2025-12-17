@@ -3,34 +3,14 @@ import * as utils from './utils';
 
 const parser = new XMLParser();
 
-// Helper to decide whether to use proxy or direct fetch
-// On Vercel (production), we MUST use the proxy for external URLs to bypass CORS.
-const fetchWithProxy = async (targetUrl: string): Promise<{ ok: boolean; status: number; text: () => Promise<string> }> => {
-  const isLocalhostTarget = targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1');
-  
-  // If we are monitoring localhost, we have to try direct fetch (will fail on Vercel deployment, works locally)
-  // If it's an external URL, we use the /api/proxy endpoint.
-  
-  let fetchUrl = targetUrl;
-  
-  // Check if we are running in a browser environment that needs proxying
-  // Simplistic check: if /api/proxy exists relative to current root, use it.
-  if (!isLocalhostTarget) {
-     // Use the Vercel serverless function created in api/proxy.ts
-     fetchUrl = `/api/proxy?url=${encodeURIComponent(targetUrl)}`;
-  }
-
-  try {
-    const res = await fetch(fetchUrl);
-    return {
-      ok: res.ok,
-      status: res.status,
-      text: () => res.text()
-    };
-  } catch (e) {
-    // If proxy fails or direct fetch fails
-    throw e;
-  }
+// For Chrome Extensions with host_permissions, we can fetch directly.
+const fetchDirect = async (url: string) => {
+  const res = await fetch(url);
+  return {
+    ok: res.ok,
+    status: res.status,
+    text: () => res.text()
+  };
 };
 
 export const discoverSitemap = async (domain: string): Promise<{ url: string; error?: string; status: 'ok' | 'failed' | 'unsupported' }> => {
@@ -42,7 +22,7 @@ export const discoverSitemap = async (domain: string): Promise<{ url: string; er
 
   // 1. Try Robots.txt
   try {
-    const res = await fetchWithProxy(robotsUrl);
+    const res = await fetchDirect(robotsUrl);
     if (res.ok) {
       const text = await res.text();
       const lines = text.split('\n');
@@ -67,14 +47,13 @@ export const discoverSitemap = async (domain: string): Promise<{ url: string; er
 
   // 2. Validate Sitemap
   try {
-    const sitemapRes = await fetchWithProxy(targetSitemapUrl);
+    const sitemapRes = await fetchDirect(targetSitemapUrl);
     
     if (!sitemapRes.ok) {
       return { url: targetSitemapUrl, status: 'failed', error: `HTTP ${sitemapRes.status}` };
     }
 
     const text = await sitemapRes.text();
-    // fast-xml-parser works in browser
     const xmlData = parser.parse(text);
 
     if (xmlData.urlset) {
@@ -91,7 +70,7 @@ export const discoverSitemap = async (domain: string): Promise<{ url: string; er
 };
 
 export const fetchSitemapUrls = async (sitemapUrl: string): Promise<string[]> => {
-  const res = await fetchWithProxy(sitemapUrl);
+  const res = await fetchDirect(sitemapUrl);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   
   const text = await res.text();

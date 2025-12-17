@@ -5,12 +5,17 @@
   "description": "Monitor game sitemaps for new content directly in your browser.",
   "permissions": [
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "sidePanel"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
+  "side_panel": {
+    "default_path": "index.html"
+  },
   "action": {
+    "default_title": "Open Monitor",
     "default_popup": "index.html"
   },
   "content_security_policy": {
