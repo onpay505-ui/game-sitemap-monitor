@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: './', // Important for Chrome Extensions to load assets correctly
+  base: './', // Relative base for Chrome Extension
   build: {
     outDir: 'dist',
     emptyOutDir: true,
