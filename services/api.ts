@@ -3,8 +3,14 @@ import * as storage from './storage';
 import * as scanner from './scanner';
 import * as utils from './utils';
 
-// Generate UUID-like ID in browser
-const uuid = () => crypto.randomUUID().slice(0, 8);
+// Safe UUID generation for browser environment
+const uuid = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID().slice(0, 8);
+  }
+  // Fallback for older environments
+  return Math.random().toString(36).substring(2, 10);
+};
 
 export const api = {
   getSites: async (): Promise<Site[]> => {
@@ -75,7 +81,7 @@ export const api = {
 
         for (const rawUrl of urls) {
             const url = utils.normalizeUrl(rawUrl);
-            const hash = await utils.hashUrl(url); // Now async
+            const hash = await utils.hashUrl(url); 
             
             if (!seenData[site.id][hash]) {
                 seenData[site.id][hash] = url;
@@ -147,7 +153,6 @@ export const api = {
 
         const newItemsFound: NewItem[] = [];
         
-        // Process sequentially to keep it simple, or Promise.all
         for (const url of newUrls) {
             const classification = utils.classifyUrl(url);
             const keyword = utils.extractGameKeyword(url);
