@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Game Sitemap Monitor",
+  "version": "1.0",
+  "description": "Monitor game sitemaps for new content directly in your browser.",
+  "permissions": [
+    "storage",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

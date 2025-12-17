@@ -1,0 +1,5 @@
+{
+  "name": "Game Sitemap Monitor",
+  "description": "MVP tool to monitor game sitemaps for new content using local JSON storage.",
+  "requestFramePermissions": []
+}
